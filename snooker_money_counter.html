@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snooker Money Counter</title>
+  <style>
+    :root{
+      --bg:#0f1720;
+      --panel:#16212b;
+      --panel-2:#1d2a36;
+      --text:#ecf3f7;
+      --muted:#9eb0bf;
+      --line:#2d3d4b;
+      --green:#0f7a3c;
+      --table:#0d5f32;
+      --red:#c52c2c;
+      --yellow:#ddb81c;
+      --blue:#2f6ee5;
+      --danger:#d9534f;
+      --ok:#20b26b;
+      --shadow:0 10px 30px rgba(0,0,0,.25);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,.06), transparent 30%),
+        linear-gradient(180deg, #0a1117 0%, #0f1720 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px;
+    }
+    .hero{
+      background:linear-gradient(135deg,#0e5e31,#0b3f22);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:var(--shadow);
+      border-radius:24px;
+      padding:22px;
+      margin-bottom:18px;
+    }
+    .hero h1{
+      margin:0 0 6px;
+      font-size:clamp(24px,4vw,34px);
+    }
+    .hero p{
+      margin:0;
+      color:#d7ece0;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:320px 1fr;
+      gap:18px;
+    }
+    @media (max-width: 940px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      background:rgba(22,33,43,.92);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    h2{
+      margin:0 0 14px;
+      font-size:18px;
+    }
+    .muted{color:var(--muted)}
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .row + .row{margin-top:10px}
+    .col{display:flex; flex-direction:column; gap:8px}
+    label{
+      font-size:13px;
+      color:var(--muted);
+    }
+    input, select, button{
+      font:inherit;
+    }
+    input[type="text"], input[type="number"]{
+      width:100%;
+      border:none;
+      outline:none;
+      padding:12px 14px;
+      border-radius:12px;
+      background:var(--panel-2);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    input[type="number"]{appearance:textfield}
+    button{
+      border:none;
+      outline:none;
+      padding:12px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s ease;
+      color:white;
+      font-weight:700;
+    }
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(0)}
+    .btn-primary{background:linear-gradient(135deg,#1d9d58,#127440)}
+    .btn-secondary{background:#314252}
+    .btn-danger{background:linear-gradient(135deg,#de5b57,#b63f3c)}
+    .btn-outline{
+      background:transparent;
+      border:1px solid var(--line);
+      color:var(--text);
+    }
+    .players{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;
+    }
+    .player-chip{
+      padding:10px 12px;
+      border-radius:999px;
+      background:#243544;
+      border:1px solid var(--line);
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .player-chip.active{
+      background:linear-gradient(135deg,#1b8a4b,#11683a);
+      border-color:transparent;
+    }
+    .player-chip small{color:#dbf3e4}
+    .table-panel{
+      background:linear-gradient(180deg,#0f6a38 0%, #0c532d 100%);
+      border-radius:24px;
+      border:3px solid #4d2d13;
+      padding:16px;
+      box-shadow:inset 0 0 0 3px #7a502b, var(--shadow);
+    }
+    .balls{
+      display:grid;
+      grid-template-columns:repeat(5, minmax(120px, 1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    @media (max-width: 720px){
+      .balls{grid-template-columns:repeat(2,1fr)}
+    }
+    .ball{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px;
+      border-radius:16px;
+      background:rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .ball-dot{
+      width:30px; height:30px; border-radius:50%;
+      box-shadow: inset 0 -4px 8px rgba(0,0,0,.25), 0 4px 10px rgba(0,0,0,.15);
+      flex:0 0 auto;
+    }
+    .red{background:radial-gradient(circle at 30% 30%, #ff8a8a, var(--red))}
+    .yellow{background:radial-gradient(circle at 30% 30%, #fff0a6, var(--yellow))}
+    .green{background:radial-gradient(circle at 30% 30%, #9cf0b0, #1d8d4f)}
+    .gray{background:radial-gradient(circle at 30% 30%, #f1f1f1, #7f8a93)}
+    .orange{background:radial-gradient(circle at 30% 30%, #ffd6a1, #d77a17)}
+    .ball-info{flex:1}
+    .ball-name{font-weight:800}
+    .ball-price{font-size:13px; color:#e0efe6}
+    .ball button{
+      min-width:86px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+    }
+    .scoreboard{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:16px;
+    }
+    @media (max-width: 920px){
+      .scoreboard{grid-template-columns:1fr}
+    }
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-bottom:14px;
+    }
+    @media (max-width: 620px){
+      .summary{grid-template-columns:1fr}
+    }
+    .stat{
+      background:rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      padding:14px;
+    }
+    .stat .label{font-size:13px; color:#d8e9dd}
+    .stat .value{font-size:28px; font-weight:900; margin-top:6px}
+    .history{
+      background:rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      padding:12px;
+      max-height:520px;
+      overflow:auto;
+    }
+    .log{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 8px;
+      border-bottom:1px dashed rgba(255,255,255,.1);
+    }
+    .log:last-child{border-bottom:none}
+    .log-left{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      width:max-content;
+    }
+    .plus{background:rgba(32,178,107,.16); color:#9ff2c8}
+    .minus{background:rgba(217,83,79,.16); color:#ffbbb8}
+    .small{font-size:12px; color:#d7e7db}
+    .money-plus{color:#9ff2c8; font-weight:900}
+    .money-minus{color:#ffb4ae; font-weight:900}
+    .footer-actions{
+      display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
+    }
+    .empty{
+      padding:24px;
+      text-align:center;
+      color:#d9e9df;
+      opacity:.9;
+    }
+    .player-header{
+      display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;
+    }
+    .hint{
+      margin-top:10px;
+      color:#cce4d3;
+      font-size:13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>เว็บนับเงินแนวสนุ๊กเกอร์</h1>
+      <p>เพิ่มผู้เล่น • ตั้งราคาเองได้ • เก็บข้อมูลอัตโนมัติแม้ปัดหน้าเว็บหรือรีเฟรช</p>
+    </div>
+
+    <div class="grid">
+      <aside class="card">
+        <h2>ตั้งค่าราคา</h2>
+        <div class="col">
+          <label>ราคาลูกแดง</label>
+          <input id="priceRed" type="number" value="40" />
+          <label>ราคาลูกเหลือง</label>
+          <input id="priceYellow" type="number" value="40" />
+          <label>ราคาลูกเขียว</label>
+          <input id="priceGreen" type="number" value="40" />
+          <label>ราคา “แก้สนุ๊ก”</label>
+          <input id="priceEscape" type="number" value="40" />
+          <label>ราคา “ฟาวล์” (ใส่เป็นค่าลบหรือค่าบวกก็ได้ ระบบจะหักให้อัตโนมัติ)</label>
+          <input id="priceFoul" type="number" value="60" />
+        </div>
+
+        <div class="footer-actions">
+          <button class="btn-primary" id="savePricesBtn">บันทึกราคา</button>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--line); margin:18px 0">
+
+        <h2>เพิ่มผู้เล่น</h2>
+        <div class="row">
+          <input id="playerName" type="text" placeholder="เช่น ต้น / บอล / นิว" />
+          <button class="btn-primary" id="addPlayerBtn">เพิ่ม</button>
+        </div>
+
+        <div class="players" id="playersList"></div>
+
+        <div class="hint">
+          ข้อมูลทั้งหมดถูกเก็บไว้ในเครื่องนี้อัตโนมัติด้วย Local Storage
+        </div>
+
+        <div class="footer-actions">
+          <button class="btn-outline" id="exportBtn">สำรองข้อมูล</button>
+          <button class="btn-outline" id="importBtn">นำเข้าข้อมูล</button>
+          <input id="importFile" type="file" accept="application/json" hidden>
+          <button class="btn-danger" id="resetAllBtn">ล้างข้อมูลทั้งหมด</button>
+        </div>
+      </aside>
+
+      <main class="table-panel">
+        <div class="player-header">
+          <div>
+            <div class="muted">ผู้เล่นที่เลือก</div>
+            <div id="activePlayerName" style="font-size:26px;font-weight:900">ยังไม่ได้เลือกผู้เล่น</div>
+          </div>
+          <button class="btn-danger" id="deletePlayerBtn">ลบผู้เล่นนี้</button>
+        </div>
+
+        <div class="balls">
+          <div class="ball">
+            <div class="ball-dot red"></div>
+            <div class="ball-info">
+              <div class="ball-name">ลูกแดง</div>
+              <div class="ball-price" id="priceTextRed">+40 บาท</div>
+            </div>
+            <button data-action="red">กดนับ</button>
+          </div>
+
+          <div class="ball">
+            <div class="ball-dot yellow"></div>
+            <div class="ball-info">
+              <div class="ball-name">ลูกเหลือง</div>
+              <div class="ball-price" id="priceTextYellow">+40 บาท</div>
+            </div>
+            <button data-action="yellow">กดนับ</button>
+          </div>
+
+          <div class="ball">
+            <div class="ball-dot green"></div>
+            <div class="ball-info">
+              <div class="ball-name">ลูกเขียว</div>
+              <div class="ball-price" id="priceTextGreen">+40 บาท</div>
+            </div>
+            <button data-action="green">กดนับ</button>
+          </div>
+
+          <div class="ball">
+            <div class="ball-dot gray"></div>
+            <div class="ball-info">
+              <div class="ball-name">แก้สนุ๊ก</div>
+              <div class="ball-price" id="priceTextEscape">+40 บาท</div>
+            </div>
+            <button data-action="escape">กดนับ</button>
+          </div>
+
+          <div class="ball">
+            <div class="ball-dot orange"></div>
+            <div class="ball-info">
+              <div class="ball-name">ฟาวล์</div>
+              <div class="ball-price" id="priceTextFoul">-60 บาท</div>
+            </div>
+            <button data-action="foul">กดนับ</button>
+          </div>
+        </div>
+
+        <div class="scoreboard">
+          <section>
+            <div class="summary">
+              <div class="stat">
+                <div class="label">ยอดรวมสุทธิ</div>
+                <div class="value" id="netTotal">0</div>
+              </div>
+              <div class="stat">
+                <div class="label">บวกทั้งหมด</div>
+                <div class="value" id="plusTotal">0</div>
+              </div>
+              <div class="stat">
+                <div class="label">ลบทั้งหมด</div>
+                <div class="value" id="minusTotal">0</div>
+              </div>
+            </div>
+
+            <div class="history" id="historyList">
+              <div class="empty">ยังไม่มีประวัติรายการ</div>
+            </div>
+
+            <div class="footer-actions">
+              <button class="btn-secondary" id="undoBtn">ย้อนกลับ 1 รายการ</button>
+              <button class="btn-danger" id="clearHistoryBtn">ล้างประวัติผู้เล่นนี้</button>
+            </div>
+          </section>
+
+          <section class="card" style="background:rgba(0,0,0,.15);border-color:rgba(255,255,255,.08)">
+            <h2>สรุปผู้เล่นทั้งหมด</h2>
+            <div id="allPlayersSummary"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "snooker-money-counter-v2";
+
+    const defaultState = {
+      prices: {
+        red: 40,
+        yellow: 40,
+        green: 40,
+        escape: 40,
+        foul: 60
+      },
+      players: [],
+      activePlayerId: null
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        const parsed = JSON.parse(raw);
+        return {
+          prices: { ...defaultState.prices, ...(parsed.prices || {}) },
+          players: Array.isArray(parsed.players) ? parsed.players : [],
+          activePlayerId: parsed.activePlayerId || null
+        };
+      } catch (e) {
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function money(n) {
+      return `${Number(n || 0).toLocaleString("th-TH")} บาท`;
+    }
+
+    function getActivePlayer() {
+      return state.players.find(p => p.id === state.activePlayerId) || null;
+    }
+
+    function calcPlayer(player) {
+      const plus = player.history.filter(i => i.amount > 0).reduce((s, i) => s + i.amount, 0);
+      const minus = player.history.filter(i => i.amount < 0).reduce((s, i) => s + Math.abs(i.amount), 0);
+      return {
+        plus,
+        minus,
+        net: plus - minus
+      };
+    }
+
+    function render() {
+      document.getElementById("priceRed").value = state.prices.red;
+      document.getElementById("priceYellow").value = state.prices.yellow;
+      document.getElementById("priceGreen").value = state.prices.green;
+      document.getElementById("priceEscape").value = state.prices.escape;
+      document.getElementById("priceFoul").value = state.prices.foul;
+
+      document.getElementById("priceTextRed").textContent = `+${state.prices.red} บาท`;
+      document.getElementById("priceTextYellow").textContent = `+${state.prices.yellow} บาท`;
+      document.getElementById("priceTextGreen").textContent = `+${state.prices.green} บาท`;
+      document.getElementById("priceTextEscape").textContent = `+${state.prices.escape} บาท`;
+      document.getElementById("priceTextFoul").textContent = `-${Math.abs(state.prices.foul)} บาท`;
+
+      renderPlayers();
+      renderActivePlayer();
+      renderSummaryAll();
+      saveState();
+    }
+
+    function renderPlayers() {
+      const wrap = document.getElementById("playersList");
+      if (!state.players.length) {
+        wrap.innerHTML = '<div class="muted">ยังไม่มีผู้เล่น</div>';
+        return;
+      }
+      wrap.innerHTML = state.players.map(p => {
+        const stats = calcPlayer(p);
+        return `
+          <div class="player-chip ${p.id === state.activePlayerId ? 'active' : ''}" data-player-id="${p.id}">
+            <span>${escapeHtml(p.name)}</span>
+            <small>${stats.net >= 0 ? '+' : ''}${stats.net}</small>
+          </div>
+        `;
+      }).join("");
+      wrap.querySelectorAll(".player-chip").forEach(el => {
+        el.addEventListener("click", () => {
+          state.activePlayerId = el.dataset.playerId;
+          render();
+        });
+      });
+    }
+
+    function renderActivePlayer() {
+      const active = getActivePlayer();
+      const nameEl = document.getElementById("activePlayerName");
+      const historyEl = document.getElementById("historyList");
+      const delBtn = document.getElementById("deletePlayerBtn");
+      const undoBtn = document.getElementById("undoBtn");
+      const clearBtn = document.getElementById("clearHistoryBtn");
+
+      if (!active) {
+        nameEl.textContent = "ยังไม่ได้เลือกผู้เล่น";
+        document.getElementById("netTotal").textContent = "0";
+        document.getElementById("plusTotal").textContent = "0";
+        document.getElementById("minusTotal").textContent = "0";
+        historyEl.innerHTML = '<div class="empty">เพิ่มผู้เล่นและเลือกก่อน แล้วค่อยกดนับคะแนน/เงิน</div>';
+        delBtn.disabled = true;
+        undoBtn.disabled = true;
+        clearBtn.disabled = true;
+        return;
+      }
+
+      delBtn.disabled = false;
+      undoBtn.disabled = active.history.length === 0;
+      clearBtn.disabled = active.history.length === 0;
+      nameEl.textContent = active.name;
+
+      const stats = calcPlayer(active);
+      document.getElementById("netTotal").textContent = `${stats.net >= 0 ? '+' : ''}${stats.net}`;
+      document.getElementById("plusTotal").textContent = `+${stats.plus}`;
+      document.getElementById("minusTotal").textContent = `-${stats.minus}`;
+
+      if (!active.history.length) {
+        historyEl.innerHTML = '<div class="empty">ยังไม่มีประวัติรายการ</div>';
+        return;
+      }
+
+      historyEl.innerHTML = [...active.history].reverse().map(item => `
+        <div class="log">
+          <div class="log-left">
+            <span class="tag ${item.amount >= 0 ? 'plus' : 'minus'}">
+              ${item.amount >= 0 ? 'บวก' : 'ลบ'} • ${escapeHtml(item.label)}
+            </span>
+            <span class="small">${new Date(item.at).toLocaleString("th-TH")}</span>
+          </div>
+          <div class="${item.amount >= 0 ? 'money-plus' : 'money-minus'}">
+            ${item.amount >= 0 ? '+' : ''}${item.amount}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderSummaryAll() {
+      const el = document.getElementById("allPlayersSummary");
+      if (!state.players.length) {
+        el.innerHTML = '<div class="muted">ยังไม่มีผู้เล่น</div>';
+        return;
+      }
+
+      el.innerHTML = state.players.map(p => {
+        const s = calcPlayer(p);
+        return `
+          <div class="log">
+            <div class="log-left">
+              <strong>${escapeHtml(p.name)}</strong>
+              <span class="small">บวก ${money(s.plus)} • ลบ ${money(s.minus)}</span>
+            </div>
+            <div class="${s.net >= 0 ? 'money-plus' : 'money-minus'}">
+              ${s.net >= 0 ? '+' : ''}${money(s.net).replace(' บาท','')}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function addPlayer() {
+      const input = document.getElementById("playerName");
+      const name = input.value.trim();
+      if (!name) {
+        alert("กรุณาใส่ชื่อผู้เล่น");
+        return;
+      }
+      const player = {
+        id: uid(),
+        name,
+        history: []
+      };
+      state.players.push(player);
+      state.activePlayerId = player.id;
+      input.value = "";
+      render();
+    }
+
+    function deleteActivePlayer() {
+      const active = getActivePlayer();
+      if (!active) return;
+      const ok = confirm(`ลบผู้เล่น "${active.name}" ใช่ไหม?`);
+      if (!ok) return;
+      state.players = state.players.filter(p => p.id !== active.id);
+      state.activePlayerId = state.players[0]?.id || null;
+      render();
+    }
+
+    function clearActiveHistory() {
+      const active = getActivePlayer();
+      if (!active) return;
+      const ok = confirm(`ล้างประวัติของ "${active.name}" ทั้งหมดใช่ไหม?`);
+      if (!ok) return;
+      active.history = [];
+      render();
+    }
+
+    function addAction(type) {
+      const active = getActivePlayer();
+      if (!active) {
+        alert("กรุณาเพิ่มและเลือกผู้เล่นก่อน");
+        return;
+      }
+      const map = {
+        red: { label: "ลูกแดง", amount: +Number(state.prices.red || 0) },
+        yellow: { label: "ลูกเหลือง", amount: +Number(state.prices.yellow || 0) },
+        green: { label: "ลูกเขียว", amount: +Number(state.prices.green || 0) },
+        escape: { label: "แก้สนุ๊ก", amount: +Number(state.prices.escape || 0) },
+        foul: { label: "ฟาวล์", amount: -Math.abs(Number(state.prices.foul || 0)) }
+      };
+      const item = map[type];
+      active.history.push({
+        id: uid(),
+        label: item.label,
+        amount: item.amount,
+        at: new Date().toISOString()
+      });
+      render();
+    }
+
+    function undoLast() {
+      const active = getActivePlayer();
+      if (!active || !active.history.length) return;
+      active.history.pop();
+      render();
+    }
+
+    function savePrices() {
+      state.prices.red = Number(document.getElementById("priceRed").value || 0);
+      state.prices.yellow = Number(document.getElementById("priceYellow").value || 0);
+      state.prices.green = Number(document.getElementById("priceGreen").value || 0);
+      state.prices.escape = Number(document.getElementById("priceEscape").value || 0);
+      state.prices.foul = Math.abs(Number(document.getElementById("priceFoul").value || 0));
+      render();
+      alert("บันทึกราคาเรียบร้อย");
+    }
+
+    function resetAll() {
+      const ok = confirm("ล้างข้อมูลทั้งหมดในเว็บนี้ใช่ไหม? ทั้งผู้เล่น ราคา และประวัติ");
+      if (!ok) return;
+      state = structuredClone(defaultState);
+      render();
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "snooker-money-backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          state = {
+            prices: { ...defaultState.prices, ...(data.prices || {}) },
+            players: Array.isArray(data.players) ? data.players : [],
+            activePlayerId: data.activePlayerId || null
+          };
+          render();
+          alert("นำเข้าข้อมูลเรียบร้อย");
+        } catch (e) {
+          alert("ไฟล์ไม่ถูกต้อง");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    document.getElementById("addPlayerBtn").addEventListener("click", addPlayer);
+    document.getElementById("playerName").addEventListener("keydown", e => {
+      if (e.key === "Enter") addPlayer();
+    });
+
+    document.getElementById("savePricesBtn").addEventListener("click", savePrices);
+    document.getElementById("deletePlayerBtn").addEventListener("click", deleteActivePlayer);
+    document.getElementById("clearHistoryBtn").addEventListener("click", clearActiveHistory);
+    document.getElementById("undoBtn").addEventListener("click", undoLast);
+    document.getElementById("resetAllBtn").addEventListener("click", resetAll);
+
+    document.querySelectorAll("[data-action]").forEach(btn => {
+      btn.addEventListener("click", () => addAction(btn.dataset.action));
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", exportData);
+    document.getElementById("importBtn").addEventListener("click", () => {
+      document.getElementById("importFile").click();
+    });
+    document.getElementById("importFile").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) importData(file);
+      e.target.value = "";
+    });
+
+    render();
+  </script>
+</body>
+</html>
